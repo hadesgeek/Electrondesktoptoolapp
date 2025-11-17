@@ -22,7 +22,10 @@ interface Tool {
   icon?: string;
   bgColor?: string;
   iconImage?: string; // 图片URL或base64
+  category?: string; // 分类
 }
+
+const TOOL_CATEGORIES = ['常用网站', '常用工具', '开发工具', '设计工具', '其他'];
 
 export function ToolsPage() {
   const [tools, setTools] = useState<Tool[]>([
@@ -33,6 +36,7 @@ export function ToolsPage() {
       path: 'https://example.com',
       icon: '🎨',
       bgColor: 'bg-gradient-to-br from-green-400 to-cyan-500',
+      category: '常用网站',
     },
     {
       id: '2',
@@ -41,6 +45,7 @@ export function ToolsPage() {
       path: 'https://example.com',
       icon: '🔥',
       bgColor: 'bg-gradient-to-br from-orange-400 to-red-500',
+      category: '常用网站',
     },
     {
       id: '3',
@@ -49,6 +54,7 @@ export function ToolsPage() {
       path: 'https://example.com',
       icon: '🔍',
       bgColor: 'bg-gradient-to-br from-blue-500 to-blue-700',
+      category: '常用网站',
     },
     {
       id: '4',
@@ -57,6 +63,7 @@ export function ToolsPage() {
       path: 'https://example.com',
       icon: '💬',
       bgColor: 'bg-gradient-to-br from-purple-400 to-pink-500',
+      category: '常用网站',
     },
     {
       id: '5',
@@ -65,6 +72,7 @@ export function ToolsPage() {
       path: 'C:\\Program Files\\Example\\app.exe',
       icon: '🌐',
       bgColor: 'bg-gradient-to-br from-slate-700 to-slate-900',
+      category: '常用工具',
     },
     {
       id: '6',
@@ -73,6 +81,7 @@ export function ToolsPage() {
       path: 'https://example.com',
       icon: '📦',
       bgColor: 'bg-slate-900',
+      category: '开发工具',
     },
     {
       id: '7',
@@ -81,6 +90,7 @@ export function ToolsPage() {
       path: 'https://example.com',
       icon: '🎯',
       bgColor: 'bg-gradient-to-br from-blue-300 to-blue-500',
+      category: '常用网站',
     },
     {
       id: '8',
@@ -89,10 +99,12 @@ export function ToolsPage() {
       path: 'https://example.com',
       icon: '🤗',
       bgColor: 'bg-gradient-to-br from-yellow-300 to-yellow-500',
+      category: '常用网站',
     },
   ]);
   
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('全部');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTool, setEditingTool] = useState<Tool | null>(null);
   const [hoveredTool, setHoveredTool] = useState<string | null>(null);
@@ -109,10 +121,12 @@ export function ToolsPage() {
     bgColor: 'bg-gradient-to-br from-blue-400 to-blue-600',
     iconImage: '',
     imageUrl: '',
+    category: '常用网站',
   });
 
   const filteredTools = tools.filter((tool) =>
-    tool.name.toLowerCase().includes(searchQuery.toLowerCase())
+    tool.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    (selectedCategory === '全部' || tool.category === selectedCategory)
   );
 
   // 处理文件拖拽到整个页面
@@ -205,6 +219,7 @@ export function ToolsPage() {
                 icon: formData.icon,
                 bgColor: formData.bgColor,
                 iconImage: formData.iconImage,
+                category: formData.category,
               }
             : tool
         )
@@ -221,6 +236,7 @@ export function ToolsPage() {
         icon: formData.icon,
         bgColor: formData.bgColor,
         iconImage: formData.iconImage,
+        category: formData.category,
       };
       setTools([...tools, newTool]);
       toast.success('工具已添加');
@@ -235,6 +251,7 @@ export function ToolsPage() {
       bgColor: 'bg-gradient-to-br from-blue-400 to-blue-600',
       iconImage: '',
       imageUrl: '',
+      category: '常用网站',
     });
     setIsDialogOpen(false);
   };
@@ -251,6 +268,7 @@ export function ToolsPage() {
       bgColor: tool.bgColor || 'bg-gradient-to-br from-blue-400 to-blue-600',
       iconImage: tool.iconImage || '',
       imageUrl: '',
+      category: tool.category || '常用网站',
     });
     
     // 根据图标类型设置默认tab
@@ -291,6 +309,7 @@ export function ToolsPage() {
       bgColor: 'bg-gradient-to-br from-blue-400 to-blue-600',
       iconImage: '',
       imageUrl: '',
+      category: '常用网站',
     });
     setIconTab('emoji');
   };
@@ -318,7 +337,7 @@ export function ToolsPage() {
 
   return (
     <div 
-      className="h-full bg-white relative"
+      className="h-full bg-white relative flex"
       onDragOver={handlePageDragOver}
       onDragLeave={handlePageDragLeave}
       onDrop={handlePageDrop}
@@ -334,261 +353,324 @@ export function ToolsPage() {
         </div>
       )}
 
-      {/* 搜索栏 */}
-      <div className="border-b border-slate-200 px-6 py-4">
-        <div className="max-w-md relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="搜索"
-            className="pl-10 bg-slate-50 border-slate-200"
-          />
-        </div>
-      </div>
-
-      {/* 工具网格 */}
-      <div className="p-6">
-        <div className="grid grid-cols-8 gap-6">
-          {filteredTools.map((tool) => (
-            <div
-              key={tool.id}
-              className="relative group"
-              onMouseEnter={() => setHoveredTool(tool.id)}
-              onMouseLeave={() => setHoveredTool(null)}
+      {/* 左侧分类栏 */}
+      <aside className="w-48 border-r border-slate-200 bg-slate-50 flex-shrink-0">
+        <div className="p-4">
+          <h3 className="text-slate-600 text-sm mb-3">分类</h3>
+          <div className="space-y-1">
+            <button
+              onClick={() => setSelectedCategory('全部')}
+              className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                selectedCategory === '全部'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-slate-700 hover:bg-slate-200'
+              }`}
             >
-              <button
-                onClick={() => handleOpenTool(tool)}
-                className="w-full flex flex-col items-center gap-2 transition-transform hover:scale-105"
+              全部
+            </button>
+            {TOOL_CATEGORIES.map((category) => {
+              const count = tools.filter((t) => t.category === category).length;
+              return (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${
+                    selectedCategory === category
+                      ? 'bg-blue-500 text-white'
+                      : 'text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  <span>{category}</span>
+                  <span className={`text-xs ${
+                    selectedCategory === category ? 'text-blue-100' : 'text-slate-400'
+                  }`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </aside>
+
+      {/* 右侧内容区域 */}
+      <div className="flex-1 overflow-auto">
+        {/* 搜索栏 */}
+        <div className="border-b border-slate-200 px-6 py-4">
+          <div className="max-w-md relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="搜索"
+              className="pl-10 bg-slate-50 border-slate-200"
+            />
+          </div>
+        </div>
+
+        {/* 工具网格 */}
+        <div className="p-6">
+          <div className="grid grid-cols-8 gap-6">
+            {filteredTools.map((tool) => (
+              <div
+                key={tool.id}
+                className="relative group"
+                onMouseEnter={() => setHoveredTool(tool.id)}
+                onMouseLeave={() => setHoveredTool(null)}
               >
-                {/* 图标显示：优先显示图片，否则显示emoji+背景色 */}
-                {tool.iconImage ? (
-                  <div className="w-16 h-16 rounded-2xl shadow-md overflow-hidden bg-white">
-                    <img 
-                      src={tool.iconImage} 
-                      alt={tool.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className={`w-16 h-16 rounded-2xl ${tool.bgColor} flex items-center justify-center text-white shadow-md`}>
-                    <span className="text-2xl">{tool.icon || '📱'}</span>
+                <button
+                  onClick={() => handleOpenTool(tool)}
+                  className="w-full flex flex-col items-center gap-2 transition-transform hover:scale-105"
+                >
+                  {/* 图标显示：优先显示图片，否则显示emoji+背景色 */}
+                  {tool.iconImage ? (
+                    <div className="w-16 h-16 rounded-2xl shadow-md overflow-hidden bg-white">
+                      <img 
+                        src={tool.iconImage} 
+                        alt={tool.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className={`w-16 h-16 rounded-2xl ${tool.bgColor} flex items-center justify-center text-white shadow-md`}>
+                      <span className="text-2xl">{tool.icon || '📱'}</span>
+                    </div>
+                  )}
+                  <span className="text-slate-700 text-sm text-center w-full truncate px-1">
+                    {tool.name}
+                  </span>
+                </button>
+                
+                {/* 悬浮时显示编辑和删除按钮 */}
+                {hoveredTool === tool.id && (
+                  <div className="absolute top-0 right-0 flex gap-1">
+                    <button
+                      onClick={(e) => handleEditTool(tool, e)}
+                      className="w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-slate-100"
+                    >
+                      <Edit2 className="w-3 h-3 text-slate-600" />
+                    </button>
+                    <button
+                      onClick={(e) => handleDeleteTool(tool.id, e)}
+                      className="w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-red-50"
+                    >
+                      <X className="w-3 h-3 text-red-500" />
+                    </button>
                   </div>
                 )}
-                <span className="text-slate-700 text-sm text-center w-full truncate px-1">
-                  {tool.name}
-                </span>
-              </button>
-              
-              {/* 悬浮时显示编辑和删除按钮 */}
-              {hoveredTool === tool.id && (
-                <div className="absolute top-0 right-0 flex gap-1">
-                  <button
-                    onClick={(e) => handleEditTool(tool, e)}
-                    className="w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-slate-100"
-                  >
-                    <Edit2 className="w-3 h-3 text-slate-600" />
-                  </button>
-                  <button
-                    onClick={(e) => handleDeleteTool(tool.id, e)}
-                    className="w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-red-50"
-                  >
-                    <X className="w-3 h-3 text-red-500" />
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-
-          {/* 添加工具按钮 */}
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <button
-                onClick={() => {
-                  setEditingTool(null);
-                  setIconTab('emoji');
-                }}
-                className="flex flex-col items-center gap-2 transition-transform hover:scale-105"
-              >
-                <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 hover:border-slate-400 hover:text-slate-600 transition-colors">
-                  <Plus className="w-6 h-6" />
-                </div>
-                <span className="text-slate-500 text-sm">自定义</span>
-              </button>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{editingTool ? '编辑工具' : '添加工具'}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">工具名称</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    placeholder="输入工具名称"
-                  />
-                </div>
-
-                {/* 图标设置 - 使用Tabs */}
-                <div className="space-y-2">
-                  <Label>图标设置</Label>
-                  <Tabs value={iconTab} onValueChange={(v) => setIconTab(v as any)}>
-                    <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="emoji">Emoji</TabsTrigger>
-                      <TabsTrigger value="upload">上传</TabsTrigger>
-                      <TabsTrigger value="url">链接</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="emoji" className="space-y-3">
-                      <Input
-                        value={formData.icon}
-                        onChange={(e) =>
-                          setFormData({ ...formData, icon: e.target.value, iconImage: '' })
-                        }
-                        placeholder="例如: 🚀"
-                      />
-                      <div>
-                        <Label className="text-sm text-slate-600 mb-2 block">背景颜色</Label>
-                        <div className="grid grid-cols-4 gap-2">
-                          {bgColorOptions.map((color) => (
-                            <button
-                              key={color}
-                              type="button"
-                              onClick={() => setFormData({ ...formData, bgColor: color })}
-                              className={`w-full h-10 rounded-lg ${color} ${
-                                formData.bgColor === color
-                                  ? 'ring-2 ring-blue-500 ring-offset-2'
-                                  : ''
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="upload" className="space-y-3">
-                      <div>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="w-full"
-                        >
-                          <ImageIcon className="w-4 h-4 mr-2" />
-                          选择图片
-                        </Button>
-                      </div>
-                      {formData.iconImage && !formData.iconImage.startsWith('http') && (
-                        <div className="mt-2">
-                          <img 
-                            src={formData.iconImage} 
-                            alt="预览" 
-                            className="w-16 h-16 rounded-lg object-cover mx-auto border"
-                          />
-                        </div>
-                      )}
-                    </TabsContent>
-                    
-                    <TabsContent value="url" className="space-y-3">
-                      <div className="flex gap-2">
-                        <Input
-                          value={formData.imageUrl}
-                          onChange={(e) =>
-                            setFormData({ ...formData, imageUrl: e.target.value })
-                          }
-                          placeholder="https://example.com/icon.png"
-                        />
-                        <Button
-                          type="button"
-                          onClick={handleImageUrlApply}
-                          variant="outline"
-                        >
-                          应用
-                        </Button>
-                      </div>
-                      {formData.iconImage && formData.iconImage.startsWith('http') && (
-                        <div className="mt-2">
-                          <img 
-                            src={formData.iconImage} 
-                            alt="预览" 
-                            className="w-16 h-16 rounded-lg object-cover mx-auto border"
-                            onError={(e) => {
-                              toast.error('图片加载失败');
-                            }}
-                          />
-                        </div>
-                      )}
-                    </TabsContent>
-                  </Tabs>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="type">类型</Label>
-                  <select
-                    id="type"
-                    value={formData.type}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        type: e.target.value as 'local' | 'url',
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-md"
-                  >
-                    <option value="local">本地程序</option>
-                    <option value="url">URL链接</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="path">
-                    {formData.type === 'local' ? '程序路径' : 'URL地址'}
-                  </Label>
-                  <Input
-                    id="path"
-                    value={formData.path}
-                    onChange={(e) =>
-                      setFormData({ ...formData, path: e.target.value })
-                    }
-                    placeholder={
-                      formData.type === 'local'
-                        ? 'C:\\Program Files\\...'
-                        : 'https://...'
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">描述（可选）</Label>
-                  <Input
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    placeholder="工具描述"
-                  />
-                </div>
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button variant="outline" onClick={handleDialogClose}>
-                    取消
-                  </Button>
-                  <Button onClick={handleAddTool}>
-                    {editingTool ? '保存' : '添加'}
-                  </Button>
-                </div>
               </div>
-            </DialogContent>
-          </Dialog>
+            ))}
+
+            {/* 添加工具按钮 */}
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <button
+                  onClick={() => {
+                    setEditingTool(null);
+                    setIconTab('emoji');
+                  }}
+                  className="flex flex-col items-center gap-2 transition-transform hover:scale-105"
+                >
+                  <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 hover:border-slate-400 hover:text-slate-600 transition-colors">
+                    <Plus className="w-6 h-6" />
+                  </div>
+                  <span className="text-slate-500 text-sm">自定义</span>
+                </button>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>{editingTool ? '编辑工具' : '添加工具'}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">工具名称</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
+                      placeholder="输入工具名称"
+                    />
+                  </div>
+
+                  {/* 图标设置 - 使用Tabs */}
+                  <div className="space-y-2">
+                    <Label>图标设置</Label>
+                    <Tabs value={iconTab} onValueChange={(v) => setIconTab(v as any)}>
+                      <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="emoji">Emoji</TabsTrigger>
+                        <TabsTrigger value="upload">上传</TabsTrigger>
+                        <TabsTrigger value="url">链接</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="emoji" className="space-y-3">
+                        <Input
+                          value={formData.icon}
+                          onChange={(e) =>
+                            setFormData({ ...formData, icon: e.target.value, iconImage: '' })
+                          }
+                          placeholder="例如: 🚀"
+                        />
+                        <div>
+                          <Label className="text-sm text-slate-600 mb-2 block">背景颜色</Label>
+                          <div className="grid grid-cols-4 gap-2">
+                            {bgColorOptions.map((color) => (
+                              <button
+                                key={color}
+                                type="button"
+                                onClick={() => setFormData({ ...formData, bgColor: color })}
+                                className={`w-full h-10 rounded-lg ${color} ${
+                                  formData.bgColor === color
+                                    ? 'ring-2 ring-blue-500 ring-offset-2'
+                                    : ''
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </TabsContent>
+                      
+                      <TabsContent value="upload" className="space-y-3">
+                        <div>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="w-full"
+                          >
+                            <ImageIcon className="w-4 h-4 mr-2" />
+                            选择图片
+                          </Button>
+                        </div>
+                        {formData.iconImage && !formData.iconImage.startsWith('http') && (
+                          <div className="mt-2">
+                            <img 
+                              src={formData.iconImage} 
+                              alt="预览" 
+                              className="w-16 h-16 rounded-lg object-cover mx-auto border"
+                            />
+                          </div>
+                        )}
+                      </TabsContent>
+                      
+                      <TabsContent value="url" className="space-y-3">
+                        <div className="flex gap-2">
+                          <Input
+                            value={formData.imageUrl}
+                            onChange={(e) =>
+                              setFormData({ ...formData, imageUrl: e.target.value })
+                            }
+                            placeholder="https://example.com/icon.png"
+                          />
+                          <Button
+                            type="button"
+                            onClick={handleImageUrlApply}
+                            variant="outline"
+                          >
+                            应用
+                          </Button>
+                        </div>
+                        {formData.iconImage && formData.iconImage.startsWith('http') && (
+                          <div className="mt-2">
+                            <img 
+                              src={formData.iconImage} 
+                              alt="预览" 
+                              className="w-16 h-16 rounded-lg object-cover mx-auto border"
+                              onError={(e) => {
+                                toast.error('图片加载失败');
+                              }}
+                            />
+                          </div>
+                        )}
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="type">类型</Label>
+                    <select
+                      id="type"
+                      value={formData.type}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          type: e.target.value as 'local' | 'url',
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-md"
+                    >
+                      <option value="local">本地程序</option>
+                      <option value="url">URL链接</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="path">
+                      {formData.type === 'local' ? '程序路径' : 'URL地址'}
+                    </Label>
+                    <Input
+                      id="path"
+                      value={formData.path}
+                      onChange={(e) =>
+                        setFormData({ ...formData, path: e.target.value })
+                      }
+                      placeholder={
+                        formData.type === 'local'
+                          ? 'C:\\Program Files\\...'
+                          : 'https://...'
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">描述（可选）</Label>
+                    <Input
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) =>
+                        setFormData({ ...formData, description: e.target.value })
+                      }
+                      placeholder="工具描述"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="category">分类</Label>
+                    <select
+                      id="category"
+                      value={formData.category}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          category: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-slate-200 rounded-md"
+                    >
+                      {TOOL_CATEGORIES.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button variant="outline" onClick={handleDialogClose}>
+                      取消
+                    </Button>
+                    <Button onClick={handleAddTool}>
+                      {editingTool ? '保存' : '添加'}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </div>
     </div>
