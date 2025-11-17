@@ -3,11 +3,13 @@ import { ToolsPage } from "./components/ToolsPage";
 import { Base64Page } from "./components/Base64Page";
 import { JsonFormatterPage } from "./components/JsonFormatterPage";
 import { XmlFormatterPage } from "./components/XmlFormatterPage";
+import { TodoListPage } from "./components/TodoListPage";
 import {
   Wrench,
   Key,
   FileJson,
   FileCode,
+  CheckSquare,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -18,7 +20,7 @@ import {
   TooltipTrigger,
 } from "./components/ui/tooltip";
 
-type PageType = "tools" | "base64" | "json" | "xml";
+type PageType = "tools" | "base64" | "json" | "xml" | "todo";
 
 export default function App() {
   const [activePage, setActivePage] =
@@ -38,6 +40,11 @@ export default function App() {
       label: "XML格式化",
       icon: FileCode,
     },
+    {
+      id: "todo" as PageType,
+      label: "待办事项",
+      icon: CheckSquare,
+    },
   ];
 
   const renderPage = () => {
@@ -50,6 +57,8 @@ export default function App() {
         return <JsonFormatterPage />;
       case "xml":
         return <XmlFormatterPage />;
+      case "todo":
+        return <TodoListPage />;
       default:
         return null;
     }
